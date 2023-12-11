@@ -24,6 +24,7 @@ async function run() {
   try {
     const database = client.db("carDoctor");
     const serviceCollection = database.collection("services");
+    const bookingCollection = database.collection("bookings");
 
     // getAPI for services
     app.get("/services", async (req, res) => {
@@ -36,6 +37,19 @@ async function run() {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await serviceCollection.findOne(query);
+      res.send(result);
+    });
+
+    // getAPI for all orders
+    app.get("/bookings", async (req, res) => {
+      const result = await bookingCollection.find({}).toArray();
+      res.send(result);
+    });
+
+    // postAPI for creating an order
+    app.post("/bookings", async (req, res) => {
+      const order = req.body;
+      const result = await bookingCollection.insertOne(order);
       res.send(result);
     });
 
