@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import { MongoClient, ServerApiVersion } from "mongodb";
+import { MongoClient, ObjectId, ServerApiVersion } from "mongodb";
 import "dotenv/config";
 
 const app = express();
@@ -22,6 +22,23 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
+    const database = client.db("carDoctor");
+    const serviceCollection = database.collection("services");
+
+    // getAPI for services
+    app.get("/services", async (req, res) => {
+      const result = await serviceCollection.find({}).toArray();
+      res.send(result);
+    });
+
+    // getAPI for a specific service
+    app.get("/services/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await serviceCollection.findOne(query);
+      res.send(result);
+    });
+
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
     // Send a ping to confirm a successful connection
@@ -30,7 +47,6 @@ async function run() {
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
   } finally {
-    await client.close();
   }
 }
 run().catch(console.dir);
