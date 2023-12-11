@@ -40,13 +40,13 @@ async function run() {
       res.send(result);
     });
 
-    // getAPI for all orders
+    // getAPI for all bookings
     app.get("/bookings", async (req, res) => {
       const result = await bookingCollection.find({}).toArray();
       res.send(result);
     });
 
-    // postAPI for creating an order
+    // postAPI for creating a booking
     app.post("/bookings", async (req, res) => {
       const order = req.body;
       const result = await bookingCollection.insertOne(order);
