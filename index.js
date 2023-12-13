@@ -19,6 +19,30 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
+// making custom middlewares
+
+// middleware for logging full url
+const logger = async (req, res, next) => {
+  const fullURL = req.protocol + "://" + req.get("host") + req.originalUrl;
+  console.log(fullURL);
+  next();
+};
+
+// middleware to verify token
+const verifyToken = async (req, res, next) => {
+  const token = req.cookies?.token;
+  if (!token) {
+    return res.status(401).send({ message: "Access Denied" });
+  }
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(401).send({ message: "Access Denied" });
+    }
+    req.user = decoded;
+    next();
+  });
+};
+
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
   serverApi: {
@@ -35,7 +59,7 @@ async function run() {
     const bookingCollection = database.collection("bookings");
 
     // getAPI for services
-    app.get("/services", async (req, res) => {
+    app.get("/services", logger, async (req, res) => {
       const result = await serviceCollection.find({}).toArray();
       res.send(result);
     });
@@ -49,9 +73,11 @@ async function run() {
     });
 
     // getAPI for all bookings
-    app.get("/bookings", async (req, res) => {
-      const token = req.cookies.token;
-      console.log(token);
+    app.get("/bookings", logger, verifyToken, async (req, res) => {
+      // verifying if the logged in user is trying to access his own token
+      if (req?.user?.email !== req?.query?.email) {
+        return res.status(402).send({ message: "Unauthorized Access" });
+      }
       let query = {};
       if (req.query.email) {
         query = { email: req.query.email };
