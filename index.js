@@ -125,7 +125,16 @@ async function run() {
           httpOnly: true,
           secure: false,
         })
-        .send({ success: true });
+        .send({ success: true, userStatus: "logged in" });
+    });
+
+    // clear cookies with token when user is logged out
+    app.post("/logout", async (req, res) => {
+      const user = req.body;
+      console.log("Logging out: ", user);
+      res
+        .clearCookie("token", { maxAge: 0 })
+        .send({ success: true, userStatus: "logged out" });
     });
 
     // Connect the client to the server	(optional starting in v4.7)
