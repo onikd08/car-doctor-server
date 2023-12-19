@@ -12,7 +12,11 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@phe
 //middlewares
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: [
+      //"http://localhost:5174",
+      "https://car-doctor-93a8e.web.app",
+      "https://car-doctor-93a8e.firebaseapp.com",
+    ],
     credentials: true,
   })
 );
@@ -123,7 +127,8 @@ async function run() {
       res
         .cookie("token", token, {
           httpOnly: true,
-          secure: false,
+          secure: true,
+          sameSite: "none",
         })
         .send({ success: true, userStatus: "logged in" });
     });
@@ -133,12 +138,12 @@ async function run() {
       const user = req.body;
       console.log("Logging out: ", user);
       res
-        .clearCookie("token", { maxAge: 0 })
-        .send({ success: true, userStatus: "logged out" });
+        .clearCookie("token", { maxAge: 0, sameSite: "none", secure: true })
+        .send({ success: true });
     });
 
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    //await client.connect();
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
